@@ -5,10 +5,30 @@
 import * as React from 'react'
 import {useLocalStorageState} from '../utils'
 
-function Board({squares, onClick}) {
+function Board({squares, onClick, previousSquares}) {
+  const currentButton = React.useRef(null)
+  React.useEffect(() => {
+    if (currentButton.current) {
+      currentButton.current.focus()
+    }
+  }, [currentButton])
+
+  function lastClickedSquare(buttonIndex) {
+    for (let i = 0; i < squares.length; i++) {
+      if (squares[i] !== previousSquares[i]) {
+        return i === buttonIndex
+      }
+    }
+    return false
+  }
+
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => onClick(i)}>
+      <button
+        ref={lastClickedSquare(i) !== false ? currentButton : null}
+        className="square"
+        onClick={() => onClick(i)}
+      >
         {squares[i]}
       </button>
     )
@@ -82,7 +102,15 @@ function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board onClick={selectSquare} squares={currentSquares} />
+        <Board
+          onClick={selectSquare}
+          squares={currentSquares}
+          previousSquares={
+            history.length === 1
+              ? history[0]
+              : [...history].reverse().slice(1, 2)[0]
+          }
+        />
         <button className="restart" onClick={restart}>
           restart
         </button>
